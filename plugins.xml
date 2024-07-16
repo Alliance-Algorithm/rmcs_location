@@ -1,0 +1,5 @@
+<library path="rmcs_navigation">
+  <class type="rmcs_navigation::Component" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
+</library>

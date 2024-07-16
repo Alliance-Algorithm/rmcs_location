@@ -1,0 +1,9 @@
+test:
+  ros__parameters:
+    path_map: "/workspaces/sentry/ignore/develop_ws/pcd/battlefield.pcd"
+    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207396.pcd"
+
+icp:
+  ros__parameters:
+    maximum_iterations: 100
+    max_correspondence_distance: 5
