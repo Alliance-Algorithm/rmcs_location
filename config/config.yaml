@@ -14,8 +14,6 @@ rmcs_navigation_icp:
     outlier_removal:
       mean_k: 50
       stddev_mul_thresh: 0.3
-    # @note set them to the same value
-    # @note it affects nearestKSearch
     voxel_grid:
       lx: 0.2
       ly: 0.2
