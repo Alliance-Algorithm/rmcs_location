@@ -13,6 +13,7 @@ def generate_launch_description():
         package="rmcs_navigation",
         executable="rmcs_navigation_exe",
         parameters=params,
+        output="screen"
     )
 
     # Assemble the launch description

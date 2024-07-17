@@ -20,8 +20,13 @@ int main(int argc, char** argv)
 {
     rclcpp::init(argc, argv);
 
+    std::signal(SIGINT, [](int signal) {
+        std::cout << "Bye!" << std::endl;
+        exit(signal);
+    });
+
     auto node = std::make_shared<rclcpp::Node>(
-        "test", rclcpp::NodeOptions {}.automatically_declare_parameters_from_overrides(true));
+        "rmcs_navigation", rclcpp::NodeOptions {}.automatically_declare_parameters_from_overrides(true));
 
     auto path1 = node->get_parameter_or<std::string>("path_map", "/temp");
     auto path2 = node->get_parameter_or<std::string>("path_scan", "/temp");
@@ -50,24 +55,15 @@ int main(int argc, char** argv)
 
     auto time_start = node->get_clock()->now();
 
-    auto result = calculate_transform(scan, map);
+    auto icp = ICP {};
+    icp.register_map(map);
+    icp.register_scan(scan);
 
-    auto transformation = std::get<0>(result);
-    auto cloud_align = std::get<1>(result);
-
-    std::cout << "[transformation]\n"
-              << transformation << "\n\n";
-
-    auto affine = Eigen::Affine3f { transformation };
-
-    auto euler_angle = affine.rotation().eulerAngles(0, 1, 2);
-    auto translation = affine.translation();
-
-    std::cout << "[euler_angle]\n"
-              << euler_angle << "\n\n";
-
-    std::cout << "[translation]\n"
-              << translation << "\n\n";
+    auto cloud_align = std::make_shared<pcl::PointCloud<PointT>>();
+    if (!icp.calculate(cloud_align)) {
+        RCLCPP_ERROR(node->get_logger(), "something error");
+        rclcpp::shutdown();
+    }
 
     auto time_end = node->get_clock()->now();
 
@@ -97,8 +93,6 @@ int main(int argc, char** argv)
             map_publisher_->publish(map_publish);
             scan_publisher_->publish(scan_publish);
             trans_publisher_->publish(transformed);
-
-            RCLCPP_INFO(node->get_logger(), "running...");
         });
 
     rclcpp::spin(node);
