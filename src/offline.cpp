@@ -14,7 +14,7 @@
 #include <rclcpp/executors.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
-#include "icp/icp.hpp"
+#include "gicp/gicp.hpp"
 
 int main(int argc, char** argv)
 {
@@ -40,30 +40,27 @@ int main(int argc, char** argv)
     scan_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/test/scan", 10);
     trans_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/test/trans", 10);
 
-    auto map = std::make_shared<pcl::PointCloud<PointT>>();
-    auto scan = std::make_shared<pcl::PointCloud<PointT>>();
+    auto map = std::make_shared<pcl::PointCloud<GICP::PointT>>();
+    auto scan = std::make_shared<pcl::PointCloud<GICP::PointT>>();
 
-    if (pcl::io::loadPCDFile<PointT>(path1, *map) == -1) {
+    if (pcl::io::loadPCDFile<GICP::PointT>(path1, *map) == -1) {
         PCL_ERROR("Couldn't read file: %s\n", path1.c_str());
         return (-1);
     }
 
-    if (pcl::io::loadPCDFile<PointT>(path2, *scan) == -1) {
+    if (pcl::io::loadPCDFile<GICP::PointT>(path2, *scan) == -1) {
         PCL_ERROR("Couldn't read file: %s\n", path2.c_str());
         return (-1);
     }
 
     auto time_start = node->get_clock()->now();
 
-    auto icp = ICP {};
-    icp.register_map(map);
-    icp.register_scan(scan);
+    auto gicp = GICP {};
+    gicp.register_map(map);
+    gicp.register_scan(scan);
 
-    auto cloud_align = std::make_shared<pcl::PointCloud<PointT>>();
-    if (!icp.calculate(cloud_align)) {
-        RCLCPP_ERROR(node->get_logger(), "something error");
-        rclcpp::shutdown();
-    }
+    auto cloud_align = std::make_shared<pcl::PointCloud<GICP::PointT>>();
+    gicp.full_match(cloud_align);
 
     auto time_end = node->get_clock()->now();
 

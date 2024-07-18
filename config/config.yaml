@@ -1,20 +1,22 @@
 rmcs_navigation:
   ros__parameters:
     path_map: "/workspaces/sentry/ignore/develop_ws/pcd/battlefield.pcd"
-    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207397.pcd"
+    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207405.pcd"
 
 rmcs_navigation_icp:
   ros__parameters:
-    icp:
-      maximum_iterations_detailed: 5000
+    gicp:
+      maximum_iterations_detailed: 500
       maximum_iterations_rough: 100
       distance_threshold: 5.
-      transformation_epsilon: 0.000000001
-      euclidean_fitness_epsilon: 0.000000001
+      transformation_epsilon: 0.000001
+      euclidean_fitness_epsilon: 0.000001
+      scan_angle: 10
+      score_threshold: 0.03
     outlier_removal:
       mean_k: 50
-      stddev_mul_thresh: 0.3
+      stddev_mul_thresh: 0.5
     voxel_grid:
-      lx: 0.2
-      ly: 0.2
-      lz: 0.2
+      lx: 0.25
+      ly: 0.25
+      lz: 0.25

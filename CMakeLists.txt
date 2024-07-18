@@ -32,7 +32,7 @@ foreach(package ${PACKAGES})
   endif()
 endforeach()
 
-aux_source_directory(src/icp SOURCE)
+aux_source_directory(src/gicp SOURCE)
 
 # GENERATE CUSTOM MESSAGE 
 rosidl_generate_interfaces(
