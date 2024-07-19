@@ -85,9 +85,26 @@ target_link_libraries(
   ${CUSTOM_MESSAGE}
 )
 
+# BUILD GICP TEST EXE
+add_executable(
+  ${PROJECT_NAME}_gicp
+  ${SOURCE} 
+  src/gicp.cpp
+)
+
+ament_target_dependencies(
+  ${PROJECT_NAME}_gicp 
+  ${PACKAGES}
+)
+
+target_link_libraries(
+  ${PROJECT_NAME}_gicp 
+  ${CUSTOM_MESSAGE}
+)
+
 # INSTALL BUILD FILE
 install(
-  TARGETS ${PROJECT_NAME}_exe ${PROJECT_NAME}_dll
+  TARGETS ${PROJECT_NAME}_exe ${PROJECT_NAME}_dll ${PROJECT_NAME}_gicp 
   DESTINATION lib/${PROJECT_NAME}
 )
 

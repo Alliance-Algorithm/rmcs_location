@@ -49,6 +49,8 @@ public:
             voxel_grid_filter_->getLeafSize().x(),
             voxel_grid_filter_->getLeafSize().y(),
             voxel_grid_filter_->getLeafSize().z());
+
+        aligned_ = false;
     }
 
     void register_map(const std::shared_ptr<pcl::PointCloud<PointT>>& map)
@@ -60,6 +62,8 @@ public:
 
         RCLCPP_INFO(get_logger(), "register map, size: %zu", map->size());
         gicp_engine_->setInputTarget(map);
+
+        aligned_ = false;
     }
 
     void register_scan(const std::shared_ptr<pcl::PointCloud<PointT>>& scan)
@@ -69,11 +73,26 @@ public:
 
         RCLCPP_INFO(get_logger(), "register scan, size: %zu", scan->size());
         gicp_engine_->setInputSource(scan);
+
+        aligned_ = false;
     }
 
     inline void single_match(const std::shared_ptr<PointCloudT>& align)
     {
         gicp_engine_->align(*align);
+
+        aligned_ = true;
+        fitness_score_ = gicp_engine_->getFitnessScore(1.0);
+        transformation_ = Eigen::Affine3f { gicp_engine_->getFinalTransformation() };
+    }
+
+    inline void single_match(const std::shared_ptr<PointCloudT>& align, const Eigen::Affine3f& transformation)
+    {
+        gicp_engine_->align(*align, transformation.matrix());
+
+        aligned_ = true;
+        fitness_score_ = gicp_engine_->getFitnessScore(1.0);
+        transformation_ = Eigen::Affine3f { gicp_engine_->getFinalTransformation() };
     }
 
     void full_match(const std::shared_ptr<PointCloudT>& align)
@@ -94,12 +113,14 @@ public:
         double score_min = 1.0;
         int angle_best = 0;
 
+        // set maximum iterations for rough match
         gicp_engine_->setMaximumIterations(get_parameter_or<int>("gicp.maximum_iterations_rough", 0));
         RCLCPP_INFO(get_logger(), "[maximum_iterations_rough] %d", gicp_engine_->getMaximumIterations());
 
         static const auto scan_angle = get_parameter_or<int>("gicp.scan_angle", 6);
         static const auto score_threshold = get_parameter_or<double>("gicp.score_threshold", 0.3);
 
+        // TODO: multithread optimization
         for (auto angle = -180; angle < 181; angle += scan_angle) {
 
             auto radian = static_cast<float>(static_cast<float>(angle) / 180 * std::numbers::pi);
@@ -125,6 +146,7 @@ public:
         RCLCPP_INFO(get_logger(), "[angle_best] %-3d", angle_best);
         RCLCPP_INFO(get_logger(), "[score_best] %-3f", score_min);
 
+        // set maximum iterations for detailed match
         gicp_engine_->setMaximumIterations(get_parameter_or<int>("gicp.maximum_iterations_detailed", 0));
         RCLCPP_INFO(get_logger(), "[maximum_iterations_detailed] %d", gicp_engine_->getMaximumIterations());
 
@@ -136,22 +158,34 @@ public:
         gicp_engine_->align(*align, guess);
 
         RCLCPP_INFO(get_logger(), "[score][%d times] %-3f", gicp_engine_->getMaximumIterations(), gicp_engine_->getFitnessScore(1.0));
+
+        aligned_ = true;
+        fitness_score_ = gicp_engine_->getFitnessScore(1.0);
+        transformation_ = Eigen::Affine3f { gicp_engine_->getFinalTransformation() };
     }
 
     double fitness_score() const
     {
-        return gicp_engine_->getFitnessScore();
+        assert(aligned_ == true);
+
+        return fitness_score_;
     }
 
-    Eigen::Affine3d transformation() const
+    Eigen::Affine3f transformation() const
     {
-        return Eigen::Affine3d { gicp_engine_->getFinalTransformation().cast<double>() };
+        assert(aligned_ == true);
+
+        return transformation_;
     }
 
 private:
     std::unique_ptr<pcl::GeneralizedIterativeClosestPoint<PointT, PointT>> gicp_engine_;
     std::unique_ptr<pcl::StatisticalOutlierRemoval<PointT>> outlier_removal_filter_;
     std::unique_ptr<pcl::VoxelGrid<PointT>> voxel_grid_filter_;
+
+    bool aligned_ = false;
+    double fitness_score_ = 0;
+    Eigen::Affine3f transformation_ = Eigen::Affine3f::Identity();
 };
 
 void GICP::register_map(const std::shared_ptr<pcl::PointCloud<PointT>>& map) { impl_->register_map(map); }
@@ -167,12 +201,22 @@ void GICP::single_match(const std::shared_ptr<PointCloudT>& align)
     impl_->single_match(align);
 }
 
-double GICP::fitness_score()
+void GICP::full_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation)
+{
+    impl_->full_match(align, transformation);
+}
+
+void GICP::single_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation)
+{
+    impl_->single_match(align, transformation);
+}
+
+double GICP::fitness_score() const
 {
     return impl_->fitness_score();
 }
 
-Eigen::Affine3d GICP::transformation()
+Eigen::Affine3f GICP::transformation() const
 {
     return impl_->transformation();
 }

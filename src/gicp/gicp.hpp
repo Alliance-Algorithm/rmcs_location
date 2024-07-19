@@ -21,8 +21,11 @@ public:
     void full_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align);
     void single_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align);
 
-    double fitness_score();
-    Eigen::Affine3d transformation();
+    void full_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation);
+    void single_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation);
+
+    double fitness_score() const;
+    Eigen::Affine3f transformation() const;
 
 private:
     class Impl;

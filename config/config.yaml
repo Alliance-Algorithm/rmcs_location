@@ -1,7 +1,7 @@
 rmcs_navigation:
   ros__parameters:
     path_map: "/workspaces/sentry/ignore/develop_ws/pcd/battlefield.pcd"
-    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207405.pcd"
+    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207501.pcd"
 
 rmcs_navigation_icp:
   ros__parameters:
@@ -11,7 +11,7 @@ rmcs_navigation_icp:
       distance_threshold: 5.
       transformation_epsilon: 0.000001
       euclidean_fitness_epsilon: 0.000001
-      scan_angle: 10
+      scan_angle: 20
       score_threshold: 0.03
     outlier_removal:
       mean_k: 50
