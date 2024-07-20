@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     });
 
     auto node = std::make_shared<rclcpp::Node>(
-        "rmcs_navigation", rclcpp::NodeOptions {}.automatically_declare_parameters_from_overrides(true));
+        "rmcs_navigation_test", rclcpp::NodeOptions {}.automatically_declare_parameters_from_overrides(true));
 
     std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> map_publisher_;
     std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> scan_publisher_;
@@ -58,10 +58,10 @@ int main(int argc, char** argv)
     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> broadcaster_;
     std::shared_ptr<rclcpp::TimerBase> timer_;
 
-    map_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/test/map", 10);
-    scan_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/test/scan", 10);
-    trans_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/test/trans", 10);
-    pose_publisher_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("/test/pose", 10);
+    map_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/rmcs_navigation_test/map", 10);
+    scan_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/rmcs_navigation_test/scan", 10);
+    trans_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("/rmcs_navigation_test/trans", 10);
+    pose_publisher_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("/rmcs_navigation_test/pose", 10);
     broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node);
 
     publish_static_transformation(*node, *broadcaster_);
@@ -89,8 +89,8 @@ int main(int argc, char** argv)
     gicp.register_map(map);
     gicp.register_scan(scan);
 
-    auto cloud_align = std::make_shared<pcl::PointCloud<GICP::PointT>>();
-    gicp.full_match(cloud_align);
+    auto align = std::make_shared<pcl::PointCloud<GICP::PointT>>();
+    gicp.full_match(align);
 
     auto time_end = node->get_clock()->now();
 
@@ -124,9 +124,18 @@ int main(int argc, char** argv)
 
     pose_publisher_->publish(pose);
 
+    if (false) {
+        auto pcd = GICP::PointCloudT {};
+
+        pcd += *map;
+        pcd += *align;
+
+        pcl::io::savePCDFileASCII("/workspaces/sentry/ignore/develop_ws/standard.pcd", pcd);
+    }
+
     using namespace std::chrono_literals;
     timer_ = node->create_wall_timer(
-        1s, [&map_publisher_, &scan_publisher_, &trans_publisher_, &map, &scan, &cloud_align, &node, &pose, &pose_publisher_] {
+        1s, [&map_publisher_, &scan_publisher_, &trans_publisher_, &map, &scan, &align, &node, &pose, &pose_publisher_] {
             static auto map_publish = sensor_msgs::msg::PointCloud2();
             static auto scan_publish = sensor_msgs::msg::PointCloud2();
             static auto transformed = sensor_msgs::msg::PointCloud2();
@@ -139,7 +148,7 @@ int main(int argc, char** argv)
             scan_publish.header.frame_id = "lidar_init";
             scan_publish.header.stamp = node->get_clock()->now();
 
-            pcl::toROSMsg(*cloud_align, transformed);
+            pcl::toROSMsg(*align, transformed);
             transformed.header.frame_id = "lidar_init";
             transformed.header.stamp = node->get_clock()->now();
 

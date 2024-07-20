@@ -12,14 +12,14 @@
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 
-static inline auto node_options = rclcpp::NodeOptions {}.automatically_declare_parameters_from_overrides(true);
+static inline const auto node_options = rclcpp::NodeOptions {}.automatically_declare_parameters_from_overrides(true);
 
 class GICP::Impl : public rclcpp::Node {
 public:
     using PointCloudT = pcl::PointCloud<PointT>;
 
     Impl()
-        : Node("rmcs_navigation_icp", node_options)
+        : Node("rmcs_navigation_gicp", node_options)
     {
         gicp_engine_ = std::make_unique<pcl::GeneralizedIterativeClosestPoint<PointT, PointT>>();
         gicp_engine_->setMaximumIterations(get_parameter_or<int>("gicp.maximum_iterations_detailed", 0));
@@ -121,7 +121,9 @@ public:
         static const auto score_threshold = get_parameter_or<double>("gicp.score_threshold", 0.3);
 
         // TODO: multithread optimization
-        for (auto angle = -180; angle < 181; angle += scan_angle) {
+        for (auto n = 0; (scan_angle * n / 2) < 360; n++) {
+
+            const auto angle = static_cast<int>(scan_angle * static_cast<int>(n / 2) * std::pow(-1, n));
 
             auto radian = static_cast<float>(static_cast<float>(angle) / 180 * std::numbers::pi);
             auto rotation = Eigen::AngleAxisf(radian, Eigen::Vector3f::UnitZ());
@@ -135,7 +137,7 @@ public:
                 angle_best = angle;
             }
 
-            RCLCPP_INFO(get_logger(), "[angle] %-4d [score] %-.5lf", angle, score);
+            RCLCPP_INFO(get_logger(), "[angle] %+4d [score] %-.5lf", angle, score);
 
             if (score_min < score_threshold) {
                 RCLCPP_INFO(get_logger(), "[congratulate] score is enough, break");
