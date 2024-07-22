@@ -1,57 +1,79 @@
 #pragma once
 
-#include <Eigen/Eigen>
-
-#include <rclcpp/node.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <livox_ros_driver2/msg/custom_msg.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <std_srvs/srv/trigger.hpp>
 #include <tf2_ros/static_transform_broadcaster.h>
+
+#include <Eigen/Eigen>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <rclcpp/node.hpp>
+
+#include "gicp/gicp.hpp"
 
 namespace nav {
 
-constexpr auto slogan
-    = "\n┌───────────────────────────────────────────────────────────────────┐"
-      "\n│ welcome to use rmcs navigation, wish you a happy robomaster game! │"
-      "\n└───────────────────────────────────────────────────────────────────┘";
-
-static const auto option = rclcpp::NodeOptions {}.automatically_declare_parameters_from_overrides(true);
-
 class Node : public rclcpp::Node {
 public:
-    explicit Node()
-        : rclcpp::Node("rmcs_navigation", option)
-    {
-        RCLCPP_INFO(get_logger(), slogan);
-
-        static_transform_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
-        publish_static_transform();
-    }
+    explicit Node();
 
 private:
+    enum class Status {
+        WAIT = 0,
+        PREPARED,
+        LOCALIZATION,
+        RUNNING,
+        LOST,
+    };
+
+private:
+    // @note ros2 interface
+    std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::PoseStamped>> pose_publisher_;
+    std::shared_ptr<rclcpp::Subscription<livox_ros_driver2::msg::CustomMsg>> livox_subscription_;
+    std::shared_ptr<rclcpp::Subscription<geometry_msgs::msg::PoseStamped>> slam_pose_subscription_;
+    std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::PointCloud2>> slam_map_subscription_;
+    std::shared_ptr<rclcpp::Client<std_srvs::srv::Trigger>> slam_reset_trigger_;
     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_transform_broadcaster_;
+    std::shared_ptr<rclcpp::TimerBase> process_timer_;
 
-    void publish_static_transform()
-    {
-        auto transform_stamp = geometry_msgs::msg::TransformStamped();
+    // @note gicp
+    std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> map_;
+    std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> scan_;
 
-        auto quaternion = Eigen::Quaterniond {
-            Eigen::AngleAxisd { std::numbers::pi, Eigen::Vector3d::UnitY() }
-        };
+    std::shared_ptr<GICP> gicp_;
 
-        transform_stamp.transform.rotation.w = quaternion.w();
-        transform_stamp.transform.rotation.x = quaternion.x();
-        transform_stamp.transform.rotation.y = quaternion.y();
-        transform_stamp.transform.rotation.z = quaternion.z();
+    // @note rotation from map link "lidar_init" to world link "world"
+    Eigen::Quaterniond quaternion_ { Eigen::Quaterniond::Identity() };
 
-        transform_stamp.transform.translation.x = 0;
-        transform_stamp.transform.translation.y = 0;
-        transform_stamp.transform.translation.z = 0.6;
+    // @note translation from map link "lidar_init" to world link "world"
+    Eigen::Translation3d translation_ { Eigen::Translation3d::Identity() };
 
-        transform_stamp.header.stamp = get_clock()->now();
+    // @note the init pose in map
+    Eigen::Affine3d initialization_transformation_ { Eigen::Affine3d::Identity() };
 
-        // @note frame_id exists before child_frame_id
-        transform_stamp.header.frame_id = "lidar_init";
-        transform_stamp.child_frame_id = "world";
+    Status status_ { Status::WAIT };
 
-        static_transform_broadcaster_->sendTransform(transform_stamp);
-    }
+    bool lidar_ready_ { false };
+    bool get_lidar_frame_ { false };
+
+private:
+    // @brief receive pointcloud from livox lidar, about 20w points per second
+    // @brief the frame is used to localize
+    void livox_subscription_callback(const std::unique_ptr<livox_ros_driver2::msg::CustomMsg>& msg);
+
+    void slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg);
+
+    void slam_map_subscription_callback(const std::unique_ptr<sensor_msgs::msg::PointCloud2>& msg);
+
+    // @brief main process
+    void process_timer_callback();
+
+    // @brief localization
+    void initialize_pose();
+
+    // @brief link transform: lidar_init -> world
+    void publish_static_transform();
 };
 }

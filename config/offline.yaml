@@ -1,3 +1,17 @@
+rmcs_navigation:
+  ros__parameters:
+    initialize_pose: true
+    path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
+    map_to_world:
+      AngleAxis:
+        x: 0.0
+        y: 3.1415926535897932384626433832795028841971693993751058209749445923078164
+        z: 0.0
+      Translation:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+
 rmcs_navigation_test:
   ros__parameters:
     path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"

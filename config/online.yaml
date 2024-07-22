@@ -1,0 +1,38 @@
+rmcs_navigation:
+  ros__parameters:
+    initialize_pose: true
+    path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
+    map_to_world:
+      AngleAxis:
+        x: 0.0
+        y: 3.1415926535897932384626433832795028841971693993751058209749445923078164
+        z: 0.0
+      Translation:
+        x: 0.0
+        y: 0.0
+        z: 0.6
+
+rmcs_navigation_test:
+  ros__parameters:
+    path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
+    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207510.pcd"
+
+rmcs_navigation_gicp:
+  ros__parameters:
+    gicp:
+      maximum_iterations_detailed: 500
+      maximum_iterations_rough: 100
+      distance_threshold: 5.
+      transformation_epsilon: 0.000001
+      euclidean_fitness_epsilon: 0.000001
+      # recommend scan angle: 20
+      scan_angle: 20
+      # recommend score threshold: 0.03
+      score_threshold: 0.03
+    outlier_removal:
+      mean_k: 50
+      stddev_mul_thresh: 0.5
+    voxel_grid:
+      lx: 0.3
+      ly: 0.3
+      lz: 0.3
