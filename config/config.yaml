@@ -2,7 +2,7 @@ rmcs_navigation:
   ros__parameters:
     initialize_pose: true
     path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
-    map_to_world:
+    lidar_to_odom:
       AngleAxis:
         x: 0.0
         y: 3.1415926535897932384626433832795028841971693993751058209749445923078164
@@ -15,7 +15,7 @@ rmcs_navigation:
 rmcs_navigation_test:
   ros__parameters:
     path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
-    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207510.pcd"
+    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207395.pcd"
 
 rmcs_navigation_gicp:
   ros__parameters:
@@ -26,8 +26,11 @@ rmcs_navigation_gicp:
       transformation_epsilon: 0.000001
       euclidean_fitness_epsilon: 0.000001
       # recommend scan angle: 20
+      # search outwards with a given angle as the center 
+      # and [scan_angle] as the step length
       scan_angle: 20
       # recommend score threshold: 0.03
+      # this value is optimal given the real size of the battlefield
       score_threshold: 0.03
     outlier_removal:
       mean_k: 50

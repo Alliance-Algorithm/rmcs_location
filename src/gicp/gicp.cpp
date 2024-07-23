@@ -121,7 +121,7 @@ public:
         static const auto score_threshold = get_parameter_or<double>("gicp.score_threshold", 0.3);
 
         // TODO: multithread optimization
-        for (auto n = 0; (scan_angle * n / 2) < 360; n++) {
+        for (auto n = 1; (scan_angle * n / 2) < 360; n++) {
 
             const auto angle = static_cast<int>(scan_angle * static_cast<int>(n / 2) * std::pow(-1, n));
 
@@ -139,8 +139,8 @@ public:
 
             RCLCPP_INFO(get_logger(), "[angle] %+4d [score] %-.5lf", angle, score);
 
-            if (score_min < score_threshold) {
-                RCLCPP_INFO(get_logger(), "[congratulate] score is enough, break");
+            if (score < score_threshold) {
+                RCLCPP_INFO(get_logger(), "[congratulate] score(%.5f) is enough, break", score);
                 break;
             }
         }

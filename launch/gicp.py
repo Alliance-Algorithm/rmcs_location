@@ -8,7 +8,7 @@ def generate_launch_description():
         package="rmcs_navigation",
         executable="rmcs_navigation_gicp",
         parameters=[[FindPackageShare("rmcs_navigation"), "/config", "/config.yaml"]],
-        output="screen"
+        output="screen",
     )
 
     return LaunchDescription([node])

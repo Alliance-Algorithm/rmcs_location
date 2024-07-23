@@ -11,7 +11,7 @@ use_battlefield_record = True
 def generate_launch_description():
     rmcs_slam = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [FindPackageShare("rmcs_slam"), "/launch", "/offline.py"]
+            [FindPackageShare("rmcs_slam"), "/launch", "/launch.py"]
         )
     )
 
@@ -24,14 +24,14 @@ def generate_launch_description():
     rmcs_navigation = Node(
         package="rmcs_navigation",
         executable="rmcs_navigation_exe",
-        parameters=[[FindPackageShare("rmcs_navigation"), "/config", "/offline.yaml"]],
+        parameters=[[FindPackageShare("rmcs_navigation"), "/config", "/config.yaml"]],
         output="screen",
     )
 
     # ros2 bag recorded in real battlefield
     battlefield = ExecuteProcess(
         cmd=["ros2", "bag", "play", "/workspaces/sentry/ignore/bag/battlefield_0"],
-        output="screen",
+        output="log",
     )
 
     launch = LaunchDescription()
