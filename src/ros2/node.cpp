@@ -32,7 +32,7 @@ Node::Node()
     RCLCPP_INFO(get_logger(), slogan);
 
     // ros2 interface create
-    pose_publisher_ = create_publisher<geometry_msgs::msg::PoseStamped>("/rmcs_navigation/pose", rclcpp::SensorDataQoS {});
+    pose_publisher_ = create_publisher<geometry_msgs::msg::PoseStamped>("/rmcs_navigation/pose", 10);
 
     slam_pose_subscription_ = create_subscription<geometry_msgs::msg::PoseStamped>("/rmcs_slam/pose", rclcpp::SensorDataQoS {},
         [this](const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg) { slam_pose_subscription_callback(msg); });
@@ -109,6 +109,11 @@ void Node::slam_map_subscription_callback(const std::unique_ptr<sensor_msgs::msg
 {
     if (!get_initial_map_)
         return;
+
+    if (msg->data.size() < 100) {
+        RCLCPP_INFO(get_logger(), "useless map, retry...");
+        return;
+    }
 
     pcl::fromROSMsg(*msg, *map_initial_);
 
