@@ -1,6 +1,7 @@
 rmcs_navigation:
   ros__parameters:
     initialize_pose: true
+    localization_when_lost: true
     path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
     lidar_to_odom:
       AngleAxis:

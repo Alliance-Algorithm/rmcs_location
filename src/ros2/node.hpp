@@ -56,6 +56,7 @@ private:
 
     bool get_initial_map_ { false };
     bool initialize_pose_ { false };
+    bool localization_when_lost { false };
 
 private:
     void slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg);

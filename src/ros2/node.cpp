@@ -52,6 +52,7 @@ Node::Node()
 
     // load some parameter
     initialize_pose_ = get_parameter_or("initialize_pose", false);
+    localization_when_lost = get_parameter_or("localization_when_lost", false);
     lidar_quaternion_ = Eigen::Quaterniond {
         Eigen::AngleAxisd { get_parameter_or<double>("lidar_to_odom.AngleAxis.x", 0.0), Eigen::Vector3d::UnitX() }
         * Eigen::AngleAxisd { get_parameter_or<double>("lidar_to_odom.AngleAxis.y", 0.0), Eigen::Vector3d::UnitY() }
@@ -103,6 +104,10 @@ void Node::slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::
     utility::set_quaternion(stamp.pose.orientation, rotation);
 
     pose_publisher_->publish(stamp);
+
+    if (localization_when_lost)
+        if (std::abs(translation.z()) > 3 || std::abs(translation.y()) > 10 || std::abs(translation.x()) > 20)
+            status_ = Status::LOST;
 }
 
 void Node::slam_map_subscription_callback(const std::unique_ptr<sensor_msgs::msg::PointCloud2>& msg)
@@ -172,15 +177,13 @@ void Node::process_timer_callback()
 
     // @brief runtime after localization
     case Status::RUNNING: {
-        if (false) {
-            status_ = Status::LOST;
-        }
-
         return;
     }
 
     // @brief localize again after losing the position
     case Status::LOST: {
+        slam_reset_trigger_->async_send_request(std::make_shared<std_srvs::srv::Trigger::Request>());
+
         map_initial_->clear();
         get_initial_map_ = true;
         status_ = Status::WAIT;

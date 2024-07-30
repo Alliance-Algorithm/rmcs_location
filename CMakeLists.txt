@@ -41,7 +41,7 @@ aux_source_directory(src/ros2 SOURCE)
 add_executable(
   ${PROJECT_NAME}_exe 
   ${SOURCE} 
-  src/offline.cpp
+  src/main.cpp
 )
 
 ament_target_dependencies(
