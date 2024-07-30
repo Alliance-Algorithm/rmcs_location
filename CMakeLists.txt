@@ -12,6 +12,7 @@ set(PACKAGES
     geometry_msgs
     nav_msgs
     std_srvs
+    tf2_ros
     pcl_conversions
     pcl_ros
     livox_ros_driver2
@@ -28,8 +29,8 @@ endif()
 # FIND PACKAGES
 foreach(package ${PACKAGES})
   find_package(${package} REQUIRED)
-  if(${package}_FOUND)
-    message("found package: ${package}")
+  if(!${package}_FOUND)
+    message("not found package: ${package}")
   endif()
 endforeach()
 
@@ -48,11 +49,6 @@ ament_target_dependencies(
   ${PACKAGES}
 )
 
-target_link_libraries(
-  ${PROJECT_NAME}_exe 
-  ${CUSTOM_MESSAGE}
-)
-
 # BUILD GICP TEST EXE
 add_executable(
   ${PROJECT_NAME}_gicp
@@ -63,11 +59,6 @@ add_executable(
 ament_target_dependencies(
   ${PROJECT_NAME}_gicp 
   ${PACKAGES}
-)
-
-target_link_libraries(
-  ${PROJECT_NAME}_gicp 
-  ${CUSTOM_MESSAGE}
 )
 
 # INSTALL BUILD FILE
