@@ -1,8 +1,9 @@
-rmcs_navigation:
+rmcs_location:
   ros__parameters:
     initialize_pose: true
     localization_when_lost: true
-    path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
+    path_map: "/workspaces/sentry/rmcs_ws/bag/standard.pcd"
+    registration_size: 5000
     lidar_to_odom:
       AngleAxis:
         x: 0.0
@@ -13,12 +14,12 @@ rmcs_navigation:
         y: 0.0
         z: 0.0
 
-rmcs_navigation_test:
+rmcs_location_test:
   ros__parameters:
     path_map: "/workspaces/sentry/ignore/develop_ws/pcd/standard.pcd"
-    path_scan: "/workspaces/sentry/ignore/develop_ws/pcd/1716207395.pcd"
+    path_scan: "/workspaces/sentry/ignore/bag/robomaster_slam.pcd"
 
-rmcs_navigation_gicp:
+rmcs_location_gicp:
   ros__parameters:
     gicp:
       maximum_iterations_detailed: 500
@@ -26,6 +27,7 @@ rmcs_navigation_gicp:
       distance_threshold: 5.
       transformation_epsilon: 0.000001
       euclidean_fitness_epsilon: 0.000001
+      threads: 10
       # recommend scan angle: 20
       # search outwards with a given angle as the center 
       # and [scan_angle] as the step length
@@ -37,6 +39,6 @@ rmcs_navigation_gicp:
       mean_k: 50
       stddev_mul_thresh: 0.5
     voxel_grid:
-      lx: 0.3
-      ly: 0.3
-      lz: 0.3
+      lx: 0.2
+      ly: 0.2
+      lz: 0.2

@@ -5,14 +5,14 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-class GICP final {
+class Registration final {
 public:
-    GICP();
-    ~GICP();
-    GICP(const GICP&) = delete;
-    GICP& operator=(const GICP&) = delete;
+    Registration();
+    ~Registration();
+    Registration(const Registration&)            = delete;
+    Registration& operator=(const Registration&) = delete;
 
-    using PointT = pcl::PointXYZ;
+    using PointT      = pcl::PointXYZ;
     using PointCloudT = pcl::PointCloud<PointT>;
 
     void register_map(const std::shared_ptr<pcl::PointCloud<PointT>>& map);
@@ -21,8 +21,10 @@ public:
     void full_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align);
     void single_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align);
 
-    void full_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation);
-    void single_match(const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation);
+    void full_match(
+        const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation);
+    void single_match(
+        const std::shared_ptr<pcl::PointCloud<PointT>>& align, const Eigen::Affine3f& transformation);
 
     double fitness_score() const;
     Eigen::Affine3f transformation() const;

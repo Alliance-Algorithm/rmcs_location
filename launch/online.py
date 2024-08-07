@@ -24,10 +24,10 @@ def generate_launch_description():
         )
     )
 
-    rmcs_navigation = Node(
-        package="rmcs_navigation",
-        executable="rmcs_navigation_exe",
-        parameters=[[FindPackageShare("rmcs_navigation"), "/config", "/config.yaml"]],
+    rmcs_location = Node(
+        package="rmcs_location",
+        executable="rmcs_location_exe",
+        parameters=[[FindPackageShare("rmcs_location"), "/config", "/config.yaml"]],
         output="screen",
     )
 
@@ -35,6 +35,6 @@ def generate_launch_description():
     launch.add_action(livox)
     launch.add_action(rmcs_slam)
     launch.add_action(rmcs_map)
-    launch.add_action(rmcs_navigation)
+    launch.add_action(rmcs_location)
 
     return launch

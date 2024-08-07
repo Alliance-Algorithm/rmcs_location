@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(rmcs_navigation)
+project(rmcs_location)
 
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -7,7 +7,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
 set(PACKAGES
-    rosidl_default_generators
     rclcpp
     geometry_msgs
     nav_msgs
@@ -15,9 +14,9 @@ set(PACKAGES
     tf2_ros
     pcl_conversions
     pcl_ros
-    livox_ros_driver2
     Eigen
     OpenCV
+    fast_gicp
 )
 
 # rmeove pcl warning
@@ -33,10 +32,10 @@ foreach(package ${PACKAGES})
   endif()
 endforeach()
 
-aux_source_directory(src/gicp SOURCE)
+aux_source_directory(src/match SOURCE)
 aux_source_directory(src/ros2 SOURCE)
 
-# BUILD OFFLINE EXE
+# BUILD EXE
 add_executable(
   ${PROJECT_NAME}_exe 
   ${SOURCE} 

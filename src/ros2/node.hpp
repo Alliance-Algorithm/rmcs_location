@@ -1,7 +1,6 @@
 #pragma once
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
-#include <livox_ros_driver2/msg/custom_msg.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <std_srvs/srv/trigger.hpp>
 #include <tf2_ros/static_transform_broadcaster.h>
@@ -11,7 +10,7 @@
 #include <pcl/point_types.h>
 #include <rclcpp/node.hpp>
 
-#include "gicp/gicp.hpp"
+#include "match/match.hpp"
 
 namespace nav {
 
@@ -41,22 +40,22 @@ private:
     std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> map_standard_;
     std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> map_initial_;
 
-    std::shared_ptr<GICP> gicp_;
+    std::shared_ptr<Registration> gicp_;
 
     // @note rotation from map link "lidar_link" to world link "odom_link"
-    Eigen::Quaterniond lidar_quaternion_ { Eigen::Quaterniond::Identity() };
+    Eigen::Quaterniond lidar_quaternion_{Eigen::Quaterniond::Identity()};
 
     // @note translation from map link "lidar_init" to world link "odom_link"
-    Eigen::Translation3d lidar_translation_ { Eigen::Translation3d::Identity() };
+    Eigen::Translation3d lidar_translation_{Eigen::Translation3d::Identity()};
 
     // @note the init pose in map
-    Eigen::Affine3d initialization_transformation_ { Eigen::Affine3d::Identity() };
+    Eigen::Affine3d initialization_transformation_{Eigen::Affine3d::Identity()};
 
-    Status status_ { Status::WAIT };
+    Status status_{Status::WAIT};
 
-    bool get_initial_map_ { false };
-    bool initialize_pose_ { false };
-    bool localization_when_lost { false };
+    bool get_initial_map_{false};
+    bool initialize_pose_{false};
+    bool localization_when_lost{false};
 
 private:
     void slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg);
@@ -72,4 +71,4 @@ private:
     // @brief link transform: lidar_init -> world
     void publish_static_transform();
 };
-}
+} // namespace nav

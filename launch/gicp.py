@@ -5,9 +5,9 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     node = Node(
-        package="rmcs_navigation",
-        executable="rmcs_navigation_gicp",
-        parameters=[[FindPackageShare("rmcs_navigation"), "/config", "/config.yaml"]],
+        package="rmcs_location",
+        executable="rmcs_location_gicp",
+        parameters=[[FindPackageShare("rmcs_location"), "/config", "/config.yaml"]],
         output="screen",
     )
 

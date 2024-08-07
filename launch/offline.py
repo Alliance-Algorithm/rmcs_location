@@ -6,6 +6,7 @@ from launch_ros.substitutions import FindPackageShare
 from launch import LaunchDescription
 
 use_battlefield_record = True
+bag = "/workspaces/sentry/ignore/bag/2024-08-01-11-00"
 
 
 def generate_launch_description():
@@ -21,23 +22,23 @@ def generate_launch_description():
         )
     )
 
-    rmcs_navigation = Node(
-        package="rmcs_navigation",
-        executable="rmcs_navigation_exe",
-        parameters=[[FindPackageShare("rmcs_navigation"), "/config", "/config.yaml"]],
+    rmcs_location = Node(
+        package="rmcs_location",
+        executable="rmcs_location_exe",
+        parameters=[[FindPackageShare("rmcs_location"), "/config", "/config.yaml"]],
         output="screen",
     )
 
     # ros2 bag recorded in real battlefield
     battlefield = ExecuteProcess(
-        cmd=["ros2", "bag", "play", "/workspaces/sentry/ignore/bag/battlefield_0"],
+        cmd=["ros2", "bag", "play", bag],
         output="log",
     )
 
     launch = LaunchDescription()
     launch.add_action(rmcs_slam)
     launch.add_action(rmcs_map)
-    launch.add_action(rmcs_navigation)
+    launch.add_action(rmcs_location)
 
     if use_battlefield_record:
         launch.add_action(battlefield)

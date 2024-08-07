@@ -8,7 +8,7 @@ day = datetime.now().day
 hour = datetime.now().hour
 minute = datetime.now().minute
 
-bag = f"/[record][{year}-{mouth}-{day}-{hour}-{minute}]"
+bag = f"[record][{year}-{mouth}-{day}-{hour}-{minute}]"
 
 
 def generate_launch_description():
