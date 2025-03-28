@@ -1,7 +1,7 @@
 rmcs_location:
   ros__parameters:
-    initialize_pose: true
-    localization_when_lost: true
+    initialize_pose: false
+    localization_when_lost: false
     path_map: "/workspaces/sentry/rmcs_ws/bag/CCStaticMap.pcd"
     registration_size: 5000
     lidar_to_odom:

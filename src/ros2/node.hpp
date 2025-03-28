@@ -54,11 +54,12 @@ private:
     Status status_{Status::WAIT};
 
     bool get_initial_map_{false};
-    bool initialize_pose_{false};
+    bool use_localization_{false};
     bool localization_when_lost{false};
 
 private:
-    void slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg);
+    void slam_pose_subscription_callback(
+        const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg);
 
     void slam_map_subscription_callback(const std::unique_ptr<sensor_msgs::msg::PointCloud2>& msg);
 

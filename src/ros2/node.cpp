@@ -22,7 +22,8 @@ constexpr auto slogan =
     "\n└───────────────────────────────────────────────────────────────────┘";
 // clang-format on
 
-static const auto option = rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true);
+static const auto option =
+    rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true);
 
 Node::Node()
     : rclcpp::Node("rmcs_location", option) {
@@ -56,7 +57,7 @@ Node::Node()
     gicp_         = std::make_shared<Registration>();
 
     // load some parameter
-    initialize_pose_       = get_parameter_or("initialize_pose", false);
+    use_localization_      = get_parameter_or("initialize_pose", false);
     localization_when_lost = get_parameter_or("localization_when_lost", false);
     lidar_quaternion_      = Eigen::Quaterniond{
         Eigen::AngleAxisd{
@@ -74,7 +75,7 @@ Node::Node()
     const auto path = get_parameter_or<std::string>("path_map", "map is not found");
     if (-1 == pcl::io::loadPCDFile(path, *map_standard_)) {
         RCLCPP_ERROR(get_logger(), "Couldn't read file: %s\n", path.c_str());
-        initialize_pose_ = false;
+        use_localization_ = false;
     } else {
         RCLCPP_INFO(get_logger(), "read standard map file at: %s", path.c_str());
     }
@@ -88,11 +89,12 @@ Node::Node()
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
     }
 
-    if (initialize_pose_)
+    if (use_localization_)
         get_initial_map_ = true;
 }
 
-void Node::slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg) {
+void Node::slam_pose_subscription_callback(
+    const std::unique_ptr<geometry_msgs::msg::PoseStamped>& msg) {
     auto stamp = geometry_msgs::msg::PoseStamped{};
 
     stamp.header.stamp    = msg->header.stamp;
@@ -103,8 +105,9 @@ void Node::slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::
     utility::set_translation(translation, msg->pose.position);
     utility::set_quaternion(rotation, msg->pose.orientation);
 
-    translation = lidar_quaternion_ * lidar_translation_ * initialization_transformation_ * translation;
-    rotation    = lidar_quaternion_ * initialization_transformation_.rotation() * rotation;
+    translation =
+        lidar_quaternion_ * lidar_translation_ * initialization_transformation_ * translation;
+    rotation = lidar_quaternion_ * initialization_transformation_.rotation() * rotation;
 
     utility::set_translation(stamp.pose.position, translation);
     utility::set_quaternion(stamp.pose.orientation, rotation);
@@ -112,11 +115,13 @@ void Node::slam_pose_subscription_callback(const std::unique_ptr<geometry_msgs::
     pose_publisher_->publish(stamp);
 
     if (localization_when_lost)
-        if (std::abs(translation.z()) > 3 || std::abs(translation.y()) > 10 || std::abs(translation.x()) > 20)
+        if (std::abs(translation.z()) > 3 || std::abs(translation.y()) > 10
+            || std::abs(translation.x()) > 20)
             status_ = Status::LOST;
 }
 
-void Node::slam_map_subscription_callback(const std::unique_ptr<sensor_msgs::msg::PointCloud2>& msg) {
+void Node::slam_map_subscription_callback(
+    const std::unique_ptr<sensor_msgs::msg::PointCloud2>& msg) {
     if (!get_initial_map_)
         return;
 
@@ -131,7 +136,7 @@ void Node::process_timer_callback() {
     switch (status_) {
     // @brief wait the begin of livox and slam
     case Status::WAIT: {
-        if (!initialize_pose_) {
+        if (!use_localization_) {
             RCLCPP_INFO(get_logger(), "running without localization");
             publish_static_transform();
             status_ = Status::RUNNING;
@@ -140,7 +145,8 @@ void Node::process_timer_callback() {
 
         if (!get_initial_map_) {
             status_ = Status::PREPARED;
-            RCLCPP_INFO(get_logger(), "slam is running successfully, prepared for pointcloud registration");
+            RCLCPP_INFO(
+                get_logger(), "slam is running successfully, prepared for pointcloud registration");
             return;
         }
 
@@ -175,7 +181,11 @@ void Node::process_timer_callback() {
     }
     // @brief localize again after losing the position
     case Status::LOST: {
-        slam_reset_trigger_->async_send_request(std::make_shared<std_srvs::srv::Trigger::Request>());
+        if (!use_localization_)
+            return;
+
+        slam_reset_trigger_->async_send_request(
+            std::make_shared<std_srvs::srv::Trigger::Request>());
 
         map_initial_->clear();
         get_initial_map_ = true;
@@ -186,7 +196,7 @@ void Node::process_timer_callback() {
 }
 
 void Node::initialize_pose() {
-    if (!initialize_pose_) {
+    if (!use_localization_) {
         RCLCPP_INFO(get_logger(), "running without localization");
         return;
     }
@@ -208,10 +218,12 @@ void Node::publish_static_transform() {
     auto transform = initialization_transformation_.inverse();
 
     utility::set_quaternion(
-        transform_stamp.transform.rotation, Eigen::Quaterniond{transform.rotation() * lidar_quaternion_});
+        transform_stamp.transform.rotation,
+        Eigen::Quaterniond{transform.rotation() * lidar_quaternion_});
 
     utility::set_translation(
-        transform_stamp.transform.translation, Eigen::Vector3d{transform * lidar_translation_.translation()});
+        transform_stamp.transform.translation,
+        Eigen::Vector3d{transform * lidar_translation_.translation()});
 
     transform_stamp.header.stamp = get_clock()->now();
 
