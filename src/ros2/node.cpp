@@ -3,6 +3,7 @@
 
 #include <Eigen/Eigen>
 
+#include <Eigen/src/Geometry/Transform.h>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <rclcpp/node.hpp>
 #include <std_srvs/srv/trigger.hpp>
@@ -214,8 +215,7 @@ void Node::initialize_pose() {
 
 void Node::publish_static_transform() {
     auto transform_stamp = geometry_msgs::msg::TransformStamped();
-
-    auto transform = initialization_transformation_.inverse();
+    auto transform       = initialization_transformation_.inverse();
 
     utility::set_quaternion(
         transform_stamp.transform.rotation,
@@ -230,6 +230,18 @@ void Node::publish_static_transform() {
     // @note frame_id exists before child_frame_id
     transform_stamp.header.frame_id = "lidar_init";
     transform_stamp.child_frame_id  = "world";
+
+    static_transform_broadcaster_->sendTransform(transform_stamp);
+
+    // For navigation frame link
+    transform_stamp = geometry_msgs::msg::TransformStamped();
+    utility::set_quaternion(transform_stamp.transform.rotation, Eigen::Quaterniond::Identity());
+    utility::set_translation(transform_stamp.transform.translation, Eigen::Vector3d::Zero());
+
+    transform_stamp.header.stamp = get_clock()->now();
+
+    transform_stamp.header.frame_id = "world";
+    transform_stamp.child_frame_id  = "tlarc";
 
     static_transform_broadcaster_->sendTransform(transform_stamp);
 }
